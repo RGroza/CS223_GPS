@@ -17,15 +17,6 @@ struct _track
     size_t size;
 };
 
-// size_t track_size(track *tr);
-// double track_length(track *tr);
-// void track_add_point(track *tr, track_node *to_add);
-// void track_destroy(track *tr);
-// location *track_get(track *tr, double time);
-// void track_for_each(const track *t, void (*f)(const trackpoint *, void *), void *arg);
-void track_merge(track *dest, track *src);
-double track_closest_approach(const track *track1, const track *track2);
-
 
 track *track_create()
 {
@@ -53,16 +44,22 @@ size_t track_size(const track *tr)
 
 double track_length(const track *tr)
 {
-    return trackpoint_get_time(tr->tail.pt) - trackpoint_get_time(tr->head.pt);
+    return trackpoint_get_time(tr->tail.prev->pt) - trackpoint_get_time(tr->head.next->pt);
 }
 
 
 bool track_add_point(track *tr, trackpoint *new_pt)
 {
+    if (tr == NULL && new_pt == NULL && trackpoint_get_time(new_pt) > trackpoint_get_time(tr->tail.prev->pt))
+    {
+        return false;
+    }
+
     track_node *new_node = malloc(sizeof(*new_node));
 
     if (new_node != NULL)
     {
+        new_node->pt = new_pt;
         new_node->next = &tr->tail;
         new_node->prev = tr->tail.prev;
         new_node->next->prev = new_node;
@@ -93,15 +90,18 @@ void track_destroy(track *tr)
 
 location *track_get(const track *tr, double time)
 {
-    if (tr == NULL || time < trackpoint_get_time(tr->head.pt) || time > trackpoint_get_time(tr->tail.pt))
+    // printf("%zu\n", tr->size);
+
+    if (tr == NULL || time < trackpoint_get_time(tr->head.next->pt) || time > trackpoint_get_time(tr->tail.prev->pt))
     {
         return NULL;
     }
 
-    const track_node *curr = &tr->head;
+    const track_node *curr = tr->head.next;
     location *result;
-    do
+    for (size_t i = 0; i < tr->size; i++)
     {
+        // printf("%lf %lf %lf\n", trackpoint_get_latitude(curr->pt), trackpoint_get_longitude(curr->pt), trackpoint_get_time(curr->pt));
         if (trackpoint_get_time(curr->pt) == time)
         {
             result = location_create(trackpoint_get_latitude(curr->pt), trackpoint_get_longitude(curr->pt));
@@ -120,7 +120,8 @@ location *track_get(const track *tr, double time)
 
             return result;
         }
-    } while (curr != &tr->tail);
+        curr = curr->next;
+    }
 
     return NULL;
 }
