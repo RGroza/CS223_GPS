@@ -192,7 +192,7 @@ void track_merge(track *dest, track *src)
         track_node *next_src = curr_src->next;
         if (trackpoint_get_time(curr_dest->pt) < trackpoint_get_time(curr_src->pt))
         {
-            printf("<\n");
+            // printf("<\n");
             if (curr_dest->next == &dest->tail)
             {
                 src->tail.prev->next = &dest->tail;
@@ -205,7 +205,7 @@ void track_merge(track *dest, track *src)
         }
         else if (trackpoint_get_time(curr_dest->pt) > trackpoint_get_time(curr_src->pt))
         {
-            printf(">\n");
+            // printf(">\n");
             curr_src->next = curr_dest;
             curr_src->prev = curr_dest->prev;
             curr_dest->prev->next = curr_src;
@@ -219,12 +219,12 @@ void track_merge(track *dest, track *src)
         {
             if (location_compare(trackpoint_get_location(curr_dest->pt), trackpoint_get_location(curr_src->pt)) == 0)
             {
-                printf("==\n");
+                // printf("==\n");
                 track_remove_node(dest, curr_dest);
                 trackpoint_destroy(curr_dest->pt);
                 curr_dest = next_dest;
             }
-            printf("=\n");
+            // printf("=\n");
             track_remove_node(src, curr_src);
             trackpoint_destroy(curr_src->pt);
             curr_src = next_src;
