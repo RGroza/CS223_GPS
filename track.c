@@ -111,7 +111,8 @@ location *track_get(const track *tr, double time)
         }
         else if (trackpoint_get_time(curr->pt) > time)
         {
-            double time_frac = (time - trackpoint_get_time(curr->prev->pt)) / (trackpoint_get_time(curr->pt) - trackpoint_get_time(curr->prev->pt));
+            double time_frac = (time - trackpoint_get_time(curr->prev->pt)) 
+                             / (trackpoint_get_time(curr->pt) - trackpoint_get_time(curr->prev->pt));
 
             return location_interpolate(trackpoint_get_location(curr->prev->pt), trackpoint_get_location(curr->pt), time_frac);
         }
@@ -194,8 +195,8 @@ void track_merge(track *dest, track *src)
             printf("<\n");
             if (curr_dest->next == &dest->tail)
             {
+                src->tail.prev->next = &dest->tail;
                 curr_dest->next = curr_src;
-                src->tail = dest->tail;
 
                 dest->size += src->size;
                 break;
@@ -216,20 +217,71 @@ void track_merge(track *dest, track *src)
         }
         else
         {
+            if (location_compare(trackpoint_get_location(curr_dest->pt), trackpoint_get_location(curr_src->pt)) == 0)
+            {
+                printf("==\n");
+                track_remove_node(dest, curr_dest);
+                trackpoint_destroy(curr_dest->pt);
+                curr_dest = next_dest;
+            }
             printf("=\n");
             track_remove_node(src, curr_src);
             trackpoint_destroy(curr_src->pt);
-            if (location_compare(trackpoint_get_location(curr_dest->pt), trackpoint_get_location(curr_src->pt)) == 0)
-            {
-                track_remove_node(dest, curr_dest);
-                trackpoint_destroy(curr_dest->pt);
-            }
+            curr_src = next_src;
         }
     }
+    // track_destroy(src);
 }
 
 
 double track_closest_approach(const track *track1, const track *track2)
 {
-    return 0;
+    track_node *curr1 = track1->head.next;
+    track_node *curr2 = track2->head.next;
+    double closest = location_distance(trackpoint_get_location(curr1->pt), trackpoint_get_location(track2->tail.prev->pt));
+    double curr_dist = 0;
+    while (curr1 != &track1->tail && curr2 != &track2->tail)
+    {
+        if (trackpoint_get_time(curr1->pt) < trackpoint_get_time(curr2->pt))
+        {
+            if (curr2->prev != &track2->head)
+            {
+                double time_frac = (trackpoint_get_time(curr1->pt) - trackpoint_get_time(curr2->prev->pt)) 
+                                 / (trackpoint_get_time(curr2->pt) - trackpoint_get_time(curr2->prev->pt));
+
+                location* curr2_inter = location_interpolate(trackpoint_get_location(curr2->prev->pt), 
+                                                             trackpoint_get_location(curr2->pt), time_frac);
+
+                curr_dist = location_distance(trackpoint_get_location(curr1->pt), curr2_inter);
+            }
+            curr1 = curr1->next;
+        }
+        else if (trackpoint_get_time(curr1->pt) > trackpoint_get_time(curr2->pt))
+        {
+            if (curr1->prev != &track1->head)
+            {
+                double time_frac = (trackpoint_get_time(curr2->pt) - trackpoint_get_time(curr1->prev->pt)) 
+                                 / (trackpoint_get_time(curr1->pt) - trackpoint_get_time(curr1->prev->pt));
+
+                location* curr1_inter = location_interpolate(trackpoint_get_location(curr1->prev->pt), 
+                                                             trackpoint_get_location(curr1->pt), time_frac);
+
+                curr_dist = location_distance(trackpoint_get_location(curr2->pt), curr1_inter);
+            }
+            curr2 = curr2->next;
+        }
+        else
+        {
+            curr_dist = location_distance(trackpoint_get_location(curr1->pt), trackpoint_get_location(curr2->pt));
+
+            curr1 = curr1->next;
+            curr2 = curr2->next;
+        }
+
+        if (curr_dist < closest)
+        {
+            closest = curr_dist;
+        }
+    }
+    return closest;
 }
