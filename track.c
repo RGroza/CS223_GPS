@@ -32,6 +32,7 @@ track *track_create()
         result->tail.next = NULL;
         result->size = 0;
     }
+    // free(result);
     return result;
 }
 
@@ -70,8 +71,11 @@ bool track_add_point(track *tr, trackpoint *new_pt)
         new_node->prev->next = new_node;
 
         tr->size++;
+
+        // free(new_node);
         return true;
     }
+    // free(new_node);
     return false;
 }
 
@@ -120,6 +124,15 @@ location *track_get(const track *tr, double time)
     }
 
     return NULL;
+}
+
+
+void print_track(const trackpoint *p, void *info)
+{
+    printf("%.6f %.6f %.6f\n",
+	    trackpoint_get_latitude(p),
+	    trackpoint_get_longitude(p),
+	    trackpoint_get_time(p));
 }
 
 
@@ -179,6 +192,11 @@ void track_split(track *src, track *dest1, track *dest2)
 
 void track_merge(track *dest, track *src)
 {
+    // track_for_each(dest, print_track, NULL);
+    // printf("\n");
+    // track_for_each(src, print_track, NULL);
+    // printf("------------------\n");
+
     track_node *curr_dest = dest->head.next;
     track_node *curr_src = src->head.next;
     while (src->size > 0)
@@ -206,6 +224,7 @@ void track_merge(track *dest, track *src)
         else if (trackpoint_get_time(curr_dest->pt) > trackpoint_get_time(curr_src->pt))
         {
             // printf(">\n");
+            track_remove_node(src, curr_src);
             curr_src->next = curr_dest;
             curr_src->prev = curr_dest->prev;
             curr_dest->prev->next = curr_src;
@@ -213,22 +232,25 @@ void track_merge(track *dest, track *src)
 
             curr_src = next_src;
             dest->size++;
-            src->size--;
         }
         else
         {
-            if (location_compare(trackpoint_get_location(curr_dest->pt), trackpoint_get_location(curr_src->pt)) == 0)
+            if (location_compare(trackpoint_get_location(curr_dest->pt), trackpoint_get_location(curr_src->pt)) != 0)
             {
                 // printf("==\n");
                 track_remove_node(dest, curr_dest);
                 trackpoint_destroy(curr_dest->pt);
-                curr_dest = next_dest;
             }
             // printf("=\n");
             track_remove_node(src, curr_src);
             trackpoint_destroy(curr_src->pt);
+            curr_dest = next_dest;
             curr_src = next_src;
         }
+        // track_for_each(dest, print_track, NULL);
+        // printf("\n");
+        // track_for_each(src, print_track, NULL);
+        // printf("------------------\n");
     }
     // track_destroy(src);
 }
