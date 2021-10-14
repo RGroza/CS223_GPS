@@ -32,7 +32,6 @@ track *track_create()
         result->tail.next = NULL;
         result->size = 0;
     }
-    // free(result);
     return result;
 }
 
@@ -55,7 +54,7 @@ double track_length(const track *tr)
 
 bool track_add_point(track *tr, trackpoint *new_pt)
 {
-    if (tr == NULL && new_pt == NULL && trackpoint_get_time(new_pt) > trackpoint_get_time(tr->tail.prev->pt))
+    if (tr == NULL || new_pt == NULL || trackpoint_get_time(new_pt) <= trackpoint_get_time(tr->tail.prev->pt))
     {
         return false;
     }
@@ -72,10 +71,9 @@ bool track_add_point(track *tr, trackpoint *new_pt)
 
         tr->size++;
 
-        // free(new_node);
         return true;
     }
-    // free(new_node);
+    free(new_node);
     return false;
 }
 
@@ -210,11 +208,14 @@ void track_merge(track *dest, track *src)
         track_node *next_src = curr_src->next;
         if (trackpoint_get_time(curr_dest->pt) < trackpoint_get_time(curr_src->pt))
         {
-            // printf("<\n");
+            printf("<\n");
             if (curr_dest->next == &dest->tail)
             {
                 src->tail.prev->next = &dest->tail;
+                dest->tail.prev = src->tail.prev;
+                curr_src->prev = curr_dest;
                 curr_dest->next = curr_src;
+                src->head.next = &src->tail;
 
                 dest->size += src->size;
                 break;
@@ -237,11 +238,11 @@ void track_merge(track *dest, track *src)
         {
             if (location_compare(trackpoint_get_location(curr_dest->pt), trackpoint_get_location(curr_src->pt)) != 0)
             {
-                // printf("==\n");
+                printf("==\n");
                 track_remove_node(dest, curr_dest);
                 trackpoint_destroy(curr_dest->pt);
             }
-            // printf("=\n");
+            printf("=\n");
             track_remove_node(src, curr_src);
             trackpoint_destroy(curr_src->pt);
             curr_dest = next_dest;
@@ -252,7 +253,12 @@ void track_merge(track *dest, track *src)
         // track_for_each(src, print_track, NULL);
         // printf("------------------\n");
     }
-    // track_destroy(src);
+    // printf("FINAL\n");
+    // track_for_each(dest, print_track, NULL);
+    // printf("\n");
+    // track_for_each(src, print_track, NULL);
+    // printf("------------------\n");
+    track_destroy(src);
 }
 
 
