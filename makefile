@@ -1,6 +1,8 @@
 CC = gcc
 CFLAGS = -Wall -std=c99 -pedantic -g3
 
+all: GPS TrackUnit
+
 GPS: GPS.o more_math.o location.o trackpoint.o track.o
 	gcc -o $@ -g $^ -lm
 

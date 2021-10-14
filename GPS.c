@@ -18,14 +18,14 @@ void print_point(const trackpoint *p, void *info)
 
 int main(int argc, char *argv[])
 {
-    if (argc < 3)
+    if (argc < 4)
     {
         fprintf(stderr, "GPS: missing filename(s)\n");
         return 0;
     }
 
-    FILE *input1 = fopen(argv[1], "r");
-    FILE *input2 = fopen(argv[2], "r");
+    FILE *input1 = fopen(argv[2], "r");
+    FILE *input2 = fopen(argv[3], "r");
 
     if (input1 == NULL || input2 == NULL)
     {
@@ -33,32 +33,45 @@ int main(int argc, char *argv[])
         return 0;
     }
 
-    double *lat = 0;
-    double *lon = 0;
-    double *time = 0;
+    double *lat = malloc(sizeof(*lat));
+    double *lon = malloc(sizeof(*lon));
+    double *time = malloc(sizeof(*time));
 
     track *track1 = track_create();
-    while (fscanf(input1, "%lf %lf %lf[^\n]", lat, lon, time) != EOF)
+    while (fscanf(input1, "%lf %lf %lf\n", lat, lon, time) != EOF)
     {
-        track_add_point(track1, trackpoint_create(location_create(*lat, *lon), *time));
+        location *loc = location_create(*lat, *lon);
+        if (loc != NULL)
+        {
+            track_add_point(track1, trackpoint_create(loc, *time));
+        }
     }
 
     track *track2 = track_create();
-    while (fscanf(input2, "%lf %lf %lf[^\n]", lat, lon, time) != EOF)
+    while (fscanf(input2, "%lf %lf %lf\n", lat, lon, time) != EOF)
     {
-        track_add_point(track2, trackpoint_create(location_create(*lat, *lon), *time));
+        location *loc = location_create(*lat, *lon);
+        if (loc != NULL)
+        {
+            track_add_point(track2, trackpoint_create(loc, *time));
+        }
     }
 
-    if (strcmp(argv[0], "-combine") == 0)
+    free(lat);
+    free(lon);
+    free(time);
+
+    if (strcmp(argv[1], "-combine") == 0)
     {
         track_merge(track1, track2);
         track_for_each(track1, print_point, NULL);
-        return 1;
+        track_destroy(track1);
     }
-    else if (strcmp(argv[0], "-closest") == 0)
+    else if (strcmp(argv[1], "-closest") == 0)
     {
-        printf("%lf", track_closest_approach(track1, track2));
-        return 1;
+        printf("%0.lf\n", round(track_closest_approach(track1, track2)));
+        track_destroy(track1);
+        track_destroy(track2);
     }
     else
     {

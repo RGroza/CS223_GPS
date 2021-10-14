@@ -80,7 +80,7 @@ bool track_add_point(track *tr, trackpoint *new_pt)
 
         return true;
     }
-    free(new_node);
+    // free(new_node);
     return false;
 }
 
@@ -215,7 +215,7 @@ void track_merge(track *dest, track *src)
         track_node *next_src = curr_src->next;
         if (trackpoint_get_time(curr_dest->pt) < trackpoint_get_time(curr_src->pt))
         {
-            printf("<\n");
+            // printf("<\n");
             if (curr_dest->next == &dest->tail)
             {
                 src->tail.prev->next = &dest->tail;
@@ -245,14 +245,19 @@ void track_merge(track *dest, track *src)
         {
             if (location_compare(trackpoint_get_location(curr_dest->pt), trackpoint_get_location(curr_src->pt)) != 0)
             {
-                printf("==\n");
+                // printf("==\n");
                 track_remove_node(dest, curr_dest);
                 trackpoint_destroy(curr_dest->pt);
+                free(curr_dest);
             }
-            printf("=\n");
+            // printf("=\n");
             track_remove_node(src, curr_src);
             trackpoint_destroy(curr_src->pt);
-            curr_dest = next_dest;
+            free(curr_src);
+            if (next_dest != &dest->tail)
+            {
+                curr_dest = next_dest;
+            }
             curr_src = next_src;
         }
         // track_for_each(dest, print_track, NULL);
@@ -288,6 +293,8 @@ double track_closest_approach(const track *track1, const track *track2)
                                                              trackpoint_get_location(curr2->pt), time_frac);
 
                 curr_dist = location_distance(trackpoint_get_location(curr1->pt), curr2_inter);
+
+                location_destroy(curr2_inter);
             }
             curr1 = curr1->next;
         }
@@ -302,6 +309,8 @@ double track_closest_approach(const track *track1, const track *track2)
                                                              trackpoint_get_location(curr1->pt), time_frac);
 
                 curr_dist = location_distance(trackpoint_get_location(curr2->pt), curr1_inter);
+
+                location_destroy(curr1_inter);
             }
             curr2 = curr2->next;
         }
