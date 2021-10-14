@@ -54,9 +54,16 @@ double track_length(const track *tr)
 
 bool track_add_point(track *tr, trackpoint *new_pt)
 {
-    if (tr == NULL || new_pt == NULL || trackpoint_get_time(new_pt) <= trackpoint_get_time(tr->tail.prev->pt))
+    if (tr == NULL || new_pt == NULL)
     {
         return false;
+    }
+    if (tr->size > 0)
+    {
+        if (trackpoint_get_time(new_pt) <= trackpoint_get_time(tr->tail.prev->pt))
+        {
+            return false;
+        }
     }
 
     track_node *new_node = malloc(sizeof(*new_node));
