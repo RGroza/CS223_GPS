@@ -1,0 +1,32 @@
+ESTIMATE of time to complete assignment: 12 hours
+
+      Time     Time
+Date  Started  Spent Work completed
+----  -------  ----  --------------
+10/11  5:00pm  3:00  Implemented most of the functions except for the
+                     merge and closest algorithms. Debugged some of the
+                     first test cases.
+10/12  7:00pm  2:00  Implemented merge algortihm and began debugging issues
+                     with some of the elements from src not being merged
+                     into dest.
+10/13  5:00pm  3:00  Implemented closest approach and finished debugging
+                     merge seg faults using gdb in vscode. Implemented GPS
+10/14  4:00pm  4:00  Debbugged each public test case one by one through
+                     extensive use of gdb. Rewrote parts of GPS after
+                     discovering that the file reading process was causing
+                     seg faults. Resolved valgrind memory leak errors.
+               ----
+               12:00  TOTAL time spent
+
+I mostly struggled with debugging the code in order to find problematic parts
+of my algorithms. I initially started doing this using gdb through the console
+but found that I could debug much faster if I used vscode's user interface
+tool for gdb. After learning how to set up and use the gdb UI tool, I was able 
+to resolve bugs at a faster rate and satisfy the test cases one by one.
+
+I also struggled with trying to implement a merge algorithm that only runs in
+O(k), so I ended up settling with my slightly slower implementation that
+first iterates through the first "m" nodes in dest until the src timestamp is
+less than the dest, which is when the merging begins. I did, however, save
+time complexity by concatenating the rest of src onto dest when reaching the
+end of dest with src nodes still remaning to be merged.
