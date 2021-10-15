@@ -152,17 +152,6 @@ void track_for_each(const track *tr, void (*f)(const trackpoint *, void *), void
 }
 
 
-void track_add_node_end(track *tr, track_node *to_add)
-{
-    to_add->next = &tr->tail;
-    to_add->prev = tr->tail.prev;
-    to_add->next->prev = to_add;
-    to_add->prev->next = to_add;
-    
-    tr->size++;
-}
-
-
 void track_remove_node(track *tr, track_node *to_remove)
 {
     track_node *before = to_remove->prev;
@@ -174,24 +163,6 @@ void track_remove_node(track *tr, track_node *to_remove)
     after->prev = before;
 
     tr->size--;
-}
-
-
-void track_split(track *src, track *dest1, track *dest2)
-{
-    while (src->size > 0)
-    {
-        track_node *curr = src->head.next;
-        track_remove_node(src, curr);
-        if (dest1->size > dest2->size)
-        {
-            track_add_node_end(dest2, curr);
-        }
-        else
-        {
-            track_add_node_end(dest1, curr);
-        }
-    }
 }
 
 

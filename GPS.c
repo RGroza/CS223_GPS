@@ -38,23 +38,39 @@ int main(int argc, char *argv[])
     double *time = malloc(sizeof(*time));
 
     track *track1 = track_create();
-    while (fscanf(input1, "%lf %lf %lf\n", lat, lon, time) != EOF)
+    int scan = fscanf(input1, "%lf %lf %lf\n", lat, lon, time);
+    while (scan != EOF)
     {
+        if (scan < 3)
+        {
+            fscanf(input1, "%*[^\n]\n");
+            scan = fscanf(input1, "%lf %lf %lf\n", lat, lon, time);
+            continue;
+        }
         location *loc = location_create(*lat, *lon);
         if (loc != NULL)
         {
             track_add_point(track1, trackpoint_create(loc, *time));
         }
+        scan = fscanf(input1, "%lf %lf %lf\n", lat, lon, time);
     }
 
     track *track2 = track_create();
-    while (fscanf(input2, "%lf %lf %lf\n", lat, lon, time) != EOF)
+    scan = fscanf(input2, "%lf %lf %lf\n", lat, lon, time);
+    while (scan != EOF)
     {
+        if (scan < 3)
+        {
+            fscanf(input2, "%*[^\n]\n");
+            scan = fscanf(input1, "%lf %lf %lf\n", lat, lon, time);
+            continue;
+        }
         location *loc = location_create(*lat, *lon);
         if (loc != NULL)
         {
             track_add_point(track2, trackpoint_create(loc, *time));
         }
+        scan = fscanf(input2, "%lf %lf %lf\n", lat, lon, time);
     }
 
     free(lat);
