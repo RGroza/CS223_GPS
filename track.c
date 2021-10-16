@@ -80,7 +80,6 @@ bool track_add_point(track *tr, trackpoint *new_pt)
 
         return true;
     }
-    // free(new_node);
     return false;
 }
 
@@ -103,8 +102,6 @@ void track_destroy(track *tr)
 
 location *track_get(const track *tr, double time)
 {
-    // printf("%zu\n", tr->size);
-
     if (tr == NULL || time < trackpoint_get_time(tr->head.next->pt) || time > trackpoint_get_time(tr->tail.prev->pt))
     {
         return NULL;
@@ -113,7 +110,6 @@ location *track_get(const track *tr, double time)
     const track_node *curr = tr->head.next;
     for (size_t i = 0; i < tr->size; i++)
     {
-        // printf("%lf %lf %lf\n", trackpoint_get_latitude(curr->pt), trackpoint_get_longitude(curr->pt), trackpoint_get_time(curr->pt));
         if (trackpoint_get_time(curr->pt) == time)
         {
             return location_create(trackpoint_get_latitude(curr->pt), trackpoint_get_longitude(curr->pt));
@@ -152,6 +148,12 @@ void track_for_each(const track *tr, void (*f)(const trackpoint *, void *), void
 }
 
 
+/**
+ * Removes a given track_node from a given track.
+ *
+ * @param tr a pointer to a valid track, non-NULL
+ * @param track_node a pointer to a valid track_node, non_NULL
+ */
 void track_remove_node(track *tr, track_node *to_remove)
 {
     track_node *before = to_remove->prev;
@@ -168,31 +170,29 @@ void track_remove_node(track *tr, track_node *to_remove)
 
 void track_merge(track *dest, track *src)
 {
-    // track_for_each(dest, print_track, NULL);
-    // printf("\n");
-    // track_for_each(src, print_track, NULL);
-    // printf("------------------\n");
+    track_node *curr_src = src->head.next;
 
+    // If dest or src is empty, destroy and return
+    if (dest->size == 0)
+    {
+        return;
+    }
     if (src->size == 0)
     {
         track_destroy(src);
         return;
     }
 
-    track_node *curr_dest = dest->head.next;
-    track_node *curr_src = src->head.next;
-
-    if (dest->size > 0)
+    // Traverse through dest backwards until the timestamp from dest is found to be greater than src
+    track_node *curr_dest = dest->tail.prev;
+    while (curr_dest->prev != &dest->head && trackpoint_get_time(curr_dest->pt) > trackpoint_get_time(curr_src->pt))
     {
-        curr_dest = dest->tail.prev;
-        while (curr_dest->prev != &dest->head && trackpoint_get_time(curr_dest->pt) > trackpoint_get_time(curr_src->pt))
-        {
-            curr_dest = curr_dest->prev;
-        }
+        curr_dest = curr_dest->prev;
     }
 
     while (src->size > 0)
     {
+        // If the end of tracks is reached, break 
         if (&curr_src == &src->tail.next || &curr_dest == &dest->tail.next)
         {
             break;
@@ -202,7 +202,7 @@ void track_merge(track *dest, track *src)
         track_node *next_src = curr_src->next;
         if (trackpoint_get_time(curr_dest->pt) < trackpoint_get_time(curr_src->pt))
         {
-            // printf("<\n");
+            // If end of dest is reached, concatentate the rest of src onto dest
             if (curr_dest->next == &dest->tail)
             {
                 src->tail.prev->next = &dest->tail;
@@ -218,7 +218,7 @@ void track_merge(track *dest, track *src)
         }
         else if (trackpoint_get_time(curr_dest->pt) > trackpoint_get_time(curr_src->pt))
         {
-            // printf(">\n");
+            // Insert curr_src before curr_dest
             track_remove_node(src, curr_src);
             curr_src->next = curr_dest;
             curr_src->prev = curr_dest->prev;
@@ -232,12 +232,11 @@ void track_merge(track *dest, track *src)
         {
             if (location_compare(trackpoint_get_location(curr_dest->pt), trackpoint_get_location(curr_src->pt)) != 0)
             {
-                // printf("==\n");
+                // If duplicate timestamps with same location are found, destroy both track nodes
                 track_remove_node(dest, curr_dest);
                 trackpoint_destroy(curr_dest->pt);
                 free(curr_dest);
             }
-            // printf("=\n");
             track_remove_node(src, curr_src);
             trackpoint_destroy(curr_src->pt);
             free(curr_src);
@@ -247,16 +246,7 @@ void track_merge(track *dest, track *src)
             }
             curr_src = next_src;
         }
-        // track_for_each(dest, print_track, NULL);
-        // printf("\n");
-        // track_for_each(src, print_track, NULL);
-        // printf("------------------\n");
     }
-    // printf("FINAL\n");
-    // track_for_each(dest, print_track, NULL);
-    // printf("\n");
-    // track_for_each(src, print_track, NULL);
-    // printf("------------------\n");
     track_destroy(src);
 }
 
@@ -265,12 +255,15 @@ double track_closest_approach(const track *track1, const track *track2)
 {
     track_node *curr1 = track1->head.next;
     track_node *curr2 = track2->head.next;
+
     double closest = location_distance(trackpoint_get_location(curr1->pt), trackpoint_get_location(track2->tail.prev->pt));
     double curr_dist = 0;
+
     while (curr1 != &track1->tail && curr2 != &track2->tail)
     {
         if (trackpoint_get_time(curr1->pt) < trackpoint_get_time(curr2->pt))
         {
+            // If curr1 node is less than curr2 node, find distance between curr1 and interpolated location
             if (curr2->prev != &track2->head)
             {
                 double time_frac = (trackpoint_get_time(curr1->pt) - trackpoint_get_time(curr2->prev->pt)) 
@@ -287,6 +280,7 @@ double track_closest_approach(const track *track1, const track *track2)
         }
         else if (trackpoint_get_time(curr1->pt) > trackpoint_get_time(curr2->pt))
         {
+            // If curr2 node is less than curr1 node, find distance between curr2 and interpolated location
             if (curr1->prev != &track1->head)
             {
                 double time_frac = (trackpoint_get_time(curr2->pt) - trackpoint_get_time(curr1->prev->pt)) 
@@ -303,6 +297,7 @@ double track_closest_approach(const track *track1, const track *track2)
         }
         else
         {
+            // If nodes with the same timestamp are found, find distance between the nodes
             curr_dist = location_distance(trackpoint_get_location(curr1->pt), trackpoint_get_location(curr2->pt));
 
             curr1 = curr1->next;

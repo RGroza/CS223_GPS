@@ -1,4 +1,4 @@
-ESTIMATE of time to complete assignment: 13 hours
+ESTIMATE of time to complete assignment: 14.5 hours
 
       Time     Time
 Date  Started  Spent Work completed
@@ -15,8 +15,13 @@ Date  Started  Spent Work completed
                      extensive use of gdb. Rewrote parts of GPS after
                      discovering that the file reading process was causing
                      seg faults. Resolved valgrind memory leak errors.
+10/15  9:00pm  1:30  I decided to work on modifying my merge algorithm so
+                     that it fulfilled the time complexity requirement of
+                     O(k). Debugged some seg faults coming from invalid
+                     input test cases using gdb.
+
                ----
-               13:00  TOTAL time spent
+               14:30  TOTAL time spent
 
 I mostly struggled with debugging the code in order to find problematic parts
 of my algorithms. I initially started doing this using gdb through the console
@@ -30,3 +35,8 @@ first iterates through the first "m" nodes in dest until the src timestamp is
 less than the dest, which is when the merging begins. I did, however, save
 time complexity by concatenating the rest of src onto dest when reaching the
 end of dest with src nodes still remaning to be merged.
+
+EDIT: I decided to continue working on the assignment past the due date and
+managed to find a way to modify my existing merge algorithm such that it
+fulfilled the time complexity requirement of O(k) (by first traversing through
+dest backwards until the dest's timestamp is greater than src's).

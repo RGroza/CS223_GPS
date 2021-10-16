@@ -7,12 +7,17 @@
 #include "location.h"
 
 
-void print_point(const trackpoint *p, void *info)
+/**
+ * Prints location of single trackpoint to stdout.
+ *
+ * @param pt pointer to a valid trackpoint, non-NULL
+ */
+void print_point(const trackpoint *pt, void *info)
 {
     printf("%.6f %.6f %.6f\n",
-	    trackpoint_get_latitude(p),
-	    trackpoint_get_longitude(p),
-	    trackpoint_get_time(p));
+	    trackpoint_get_latitude(pt),
+	    trackpoint_get_longitude(pt),
+	    trackpoint_get_time(pt));
 }
 
 
@@ -76,6 +81,8 @@ int main(int argc, char *argv[])
     free(lat);
     free(lon);
     free(time);
+    fclose(input1);
+    fclose(input2);
 
     if (strcmp(argv[1], "-combine") == 0)
     {
