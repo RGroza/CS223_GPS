@@ -166,7 +166,7 @@ int main(int argc, char *argv[])
       test_closest(num_points, points, num_points3, points3);
       break;
 
-    case 100:
+    case 14:
       // merge timing test to come
       test_timing_merge(n, on);
       break;

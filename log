@@ -1,4 +1,4 @@
-ESTIMATE of time to complete assignment: 12 hours
+ESTIMATE of time to complete assignment: 13 hours
 
       Time     Time
 Date  Started  Spent Work completed
@@ -16,7 +16,7 @@ Date  Started  Spent Work completed
                      discovering that the file reading process was causing
                      seg faults. Resolved valgrind memory leak errors.
                ----
-               12:00  TOTAL time spent
+               13:00  TOTAL time spent
 
 I mostly struggled with debugging the code in order to find problematic parts
 of my algorithms. I initially started doing this using gdb through the console

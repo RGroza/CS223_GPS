@@ -173,8 +173,24 @@ void track_merge(track *dest, track *src)
     // track_for_each(src, print_track, NULL);
     // printf("------------------\n");
 
+    if (src->size == 0)
+    {
+        track_destroy(src);
+        return;
+    }
+
     track_node *curr_dest = dest->head.next;
     track_node *curr_src = src->head.next;
+
+    if (dest->size > 0)
+    {
+        curr_dest = dest->tail.prev;
+        while (curr_dest->prev != &dest->head && trackpoint_get_time(curr_dest->pt) > trackpoint_get_time(curr_src->pt))
+        {
+            curr_dest = curr_dest->prev;
+        }
+    }
+
     while (src->size > 0)
     {
         if (&curr_src == &src->tail.next || &curr_dest == &dest->tail.next)
